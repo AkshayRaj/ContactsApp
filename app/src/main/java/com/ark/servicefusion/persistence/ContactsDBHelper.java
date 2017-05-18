@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import com.ark.servicefusion.model.Contact;
 import com.ark.servicefusion.persistence.DatabaseContract.ContactEntry;
@@ -19,7 +20,7 @@ import java.util.List;
 
 
 public class ContactsDBHelper extends SQLiteOpenHelper {
-
+    private static final String TAG = "ContactsDBHelper";
     // If you change the database schema, you must increment the database version.
     public static final int DB_VERSION = 1;
     public static final String SERVICEFUSION_DB_NAME = "ServiceFusion.db";
@@ -78,7 +79,7 @@ public class ContactsDBHelper extends SQLiteOpenHelper {
     }
 
 
-    public long createContact(String firstName, String lastName, String dateOfBirth,
+    public long insertContact(String firstName, String lastName, String dateOfBirth,
                               String phoneNumber, String zipCode) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ContactEntry.COLUMN_FIRSTNAME, firstName);
@@ -91,10 +92,12 @@ public class ContactsDBHelper extends SQLiteOpenHelper {
     }
 
     public void deleteContact(long rowId){
+        Log.d(TAG, "deleteContact with _ID: " + rowId);
+
         SQLiteDatabase db = getWritableDatabase();
-        String selection = ContactEntry._ID + " = ?";
-        String[] selectionArgs = { "" + rowId };
-        db.delete(ContactEntry.TABLE_CONTACTS, ContactEntry._ID+"="+rowId,null);
+        String selection = ContactEntry._ID + "=?";
+        String[] selectionArgs = { String.valueOf(rowId) };
+        db.delete(ContactEntry.TABLE_CONTACTS, selection, selectionArgs);
     }
 
     public Cursor getContact(String firstName) throws SQLException {
@@ -152,8 +155,8 @@ public class ContactsDBHelper extends SQLiteOpenHelper {
         return db.update(ContactEntry.TABLE_CONTACTS, contentValues, ContactEntry._ID +"="+ rowId, null) > 0;
     }
 
-    public long createContact(Contact contact) {
-        return createContact(contact.getFirstName(), contact.getLastName(), contact.getDateOfBirth(),
+    public long insertContact(Contact contact) {
+        return insertContact(contact.getFirstName(), contact.getLastName(), contact.getDateOfBirth(),
                 contact.getPhoneNumber(), contact.getZipCode());
     }
 }

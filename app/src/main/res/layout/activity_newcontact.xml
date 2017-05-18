@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:inputType="textPersonName"
+        android:inputType="textPersonName|textCapWords"
         android:focusable="true"
         android:hint="First Name" />
 
@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:ems="10"
         android:focusable="true"
-        android:inputType="textPersonName"
+        android:inputType="textPersonName|textCapWords"
         android:hint="Last Name" />
 
     <EditText

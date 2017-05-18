@@ -10,6 +10,8 @@ public class Contact {
     private String phoneNumber;
     private String dateOfBirth;
     private String zipCode;
+    //for storing checkbox status in ContactsAdapter
+    private boolean selected;
 
     public Contact() {
     }
@@ -68,5 +70,13 @@ public class Contact {
 
     public long getId() {
         return _id;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean isSelected(){
+        return selected;
     }
 }

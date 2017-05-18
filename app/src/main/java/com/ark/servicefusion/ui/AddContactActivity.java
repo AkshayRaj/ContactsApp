@@ -25,8 +25,6 @@ import java.util.Locale;
 
 public class AddContactActivity extends AppCompatActivity {
 
-
-
     private EditText firstName;
     private EditText lastName;
     private EditText dateOfBirth;
@@ -77,7 +75,7 @@ public class AddContactActivity extends AppCompatActivity {
                         phoneNumber.getText().toString(),
                         zipCode.getText().toString());
                 long _id = ContactsDBHelper.getInstance(getApplicationContext())
-                        .createContact(contact);
+                        .insertContact(contact);
                 contact.setId(_id);
                 Intent contactData = new Intent();
                 contactData.putExtra(ContactEntry._ID, contact.getId());
