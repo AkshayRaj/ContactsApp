@@ -1,6 +1,7 @@
 package com.ark.servicefusion.ui;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -12,6 +13,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.ark.servicefusion.R;
@@ -38,8 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ContactsAdapter mAdapter;
     private FloatingActionButton addContactButton;
-    Toolbar toolbar;
-    MenuItem deleteButton;
+    private Toolbar toolbar;
+    private MenuItem deleteButton;
+    private MenuItem addDummyContact;
+    private ImageButton exitToContactsButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
+        getSupportActionBar().setDisplayUseLogoEnabled(false);
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
@@ -82,7 +88,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        prepareContacts();
+        exitToContactsButton = (ImageButton) findViewById(R.id.button_exittocontacts);
+        exitToContactsButton.setBackgroundColor(Color.LTGRAY);
+        exitToContactsButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                flipVisibility();
+            }
+        });
+
+        showContacts();
     }
 
     @Override
@@ -91,6 +106,7 @@ public class MainActivity extends AppCompatActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         deleteButton = menu.findItem(R.id.button_delete);
+        addDummyContact = menu.findItem(R.id.button_adddummycontact);
         return true;
     }
 
@@ -99,6 +115,9 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.button_delete:
                 deleteContacts();
+                return true;
+            case R.id.button_adddummycontact:
+                addDummyContacts();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -148,27 +167,30 @@ public class MainActivity extends AppCompatActivity {
         }.start();
 
         mAdapter.removeItems(contactsToDelete);
-        resetCheckBoxes();
+        flipVisibility();
     }
 
     private void flipVisibility(){
         Log.d(TAG, "flipVisibility()");
+        mIsCheckboxVisible = !mIsCheckboxVisible;
 
         if(mIsCheckboxVisible) {
-            mAdapter.setCheckboxVisibility(View.INVISIBLE);
-        } else {
             mAdapter.setCheckboxVisibility(View.VISIBLE);
+            addContactButton.setVisibility(View.INVISIBLE);
+            toolbar.setBackgroundColor(Color.LTGRAY);
+            findViewById(R.id.toolbar_title).setVisibility(View.INVISIBLE);
+            exitToContactsButton.setVisibility(View.VISIBLE);
+        } else {
+            mAdapter.setCheckboxVisibility(View.INVISIBLE);
+            addContactButton.setVisibility(View.VISIBLE);
+            toolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+            findViewById(R.id.toolbar_title).setVisibility(View.VISIBLE);
+            exitToContactsButton.setVisibility(View.INVISIBLE);
         }
-
-        deleteButton.setVisible(!mIsCheckboxVisible);
-        mIsCheckboxVisible = !mIsCheckboxVisible;
+        deleteButton.setVisible(mIsCheckboxVisible);
     }
 
-    private void resetCheckBoxes() {
-        mAdapter.setCheckboxVisibility(View.INVISIBLE);
-    }
-
-    private void prepareContacts() {
+    private void addDummyContacts() {
 
         ArrayList<Contact> contactsToInsert = new ArrayList<>();
         Contact contact = new Contact("Bruce", "Wayne", "May-27-1939", "911", "53540");
@@ -187,15 +209,16 @@ public class MainActivity extends AppCompatActivity {
         contactsToInsert.add(contact);
 
         for(Contact insertContact: contactsToInsert){
-            ContactsDBHelper.getInstance(getApplicationContext()).insertContact(insertContact);
+            long _id = ContactsDBHelper.getInstance(getApplicationContext()).insertContact(insertContact);
+            contact.setId(_id);
         }
+        showContacts();
+    }
 
+    private void showContacts(){
         mContactList.addAll(ContactsDBHelper.getInstance(getApplicationContext())
                 .getAllContacts());
         mAdapter.notifyDataSetChanged();
-
-//
-
     }
 
 }

@@ -4,13 +4,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".ui.MainActivity" >
 
-
     <item
         android:id="@+id/button_delete"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:icon="@drawable/ic_delete_black_24dp"
         android:visible="false"
+        android:actionViewClass="android.support.v7.widget.AppCompatButton"
+        app:showAsAction="always"/>
+    <item
+        android:id="@+id/button_adddummycontact"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:icon="@drawable/ic_account_circle_black_24dp"
+        android:visible="true"
         android:actionViewClass="android.support.v7.widget.AppCompatButton"
         app:showAsAction="always"/>
 </menu>
