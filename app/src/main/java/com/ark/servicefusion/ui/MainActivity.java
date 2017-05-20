@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import android.widget.Toast;
 import com.ark.servicefusion.R;
 import com.ark.servicefusion.model.Contact;
 import com.ark.servicefusion.persistence.ContactsDBHelper;
+import com.ark.servicefusion.persistence.DatabaseContract;
 import com.ark.servicefusion.persistence.DatabaseContract.ContactEntry;
 import com.ark.servicefusion.ui.recyclerview.*;
 import com.ark.servicefusion.ui.recyclerview.adapter.ContactsAdapter;
@@ -31,12 +33,15 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
-    protected static final int CREATE_CONTACT_CODE = 101;
-    public static final String DATE_FORMAT = "MM-dd-yyyy";
+    protected static final int REQUEST_CODE_CREATECONTACT = 101;
+    public static final int REQUEST_CODE_VIEWCONTACT = 102;
+    public static final int RESULT_CODE_CONTACTUPDATED = 103;
+    public static final int RESULT_CODE_CONTACTCREATED = 104;
+    public static final String DATE_FORMAT = "MMMM-dd-yyyy";
 
     private boolean mIsCheckboxVisible = false;
 
-    private List<Contact> mContactList = new ArrayList<>();
+    private ArrayList<Contact> mContactList = new ArrayList<>();
     private RecyclerView recyclerView;
     private ContactsAdapter mAdapter;
     private FloatingActionButton addContactButton;
@@ -56,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
-        mAdapter = new ContactsAdapter(mContactList);
+        mAdapter = new ContactsAdapter(this, mContactList);
 
         recyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -65,11 +70,23 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(mAdapter);
 
+
         recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getApplicationContext(), recyclerView, new RecyclerTouchListener.ClickListener() {
             @Override
             public void onClick(View view, int position) {
                 Contact contact = mContactList.get(position);
-                Toast.makeText(getApplicationContext(), contact.getFirstName() + " is selected!", Toast.LENGTH_SHORT).show();
+                if(!mIsCheckboxVisible) {
+                    Intent contactDetails = new Intent(getApplicationContext(), ContactDetailsActivity.class);
+                    contactDetails.putExtra(DatabaseContract.ContactEntry._ID, contact.getId());
+                    contactDetails.putExtra(DatabaseContract.ContactEntry.COLUMN_FIRSTNAME, contact.getFirstName());
+                    contactDetails.putExtra(DatabaseContract.ContactEntry.COLUMN_LASTNAME, contact.getLastName());
+                    contactDetails.putExtra(DatabaseContract.ContactEntry.COLUMN_DATEOFBIRTH, contact.getDateOfBirth());
+                    contactDetails.putExtra(DatabaseContract.ContactEntry.COLUMN_PHONENUMBER, contact.getPhoneNumber());
+                    contactDetails.putExtra(DatabaseContract.ContactEntry.COLUMN_ZIPCODE, contact.getZipCode());
+
+                    startActivityForResult(contactDetails, MainActivity.REQUEST_CODE_VIEWCONTACT);
+                }
+                Toast.makeText(getApplicationContext(), contact.getFirstName() + " is selected.", Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -84,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent saveContactIntent = new Intent(getApplicationContext(), AddContactActivity.class);
-                startActivityForResult(saveContactIntent, CREATE_CONTACT_CODE);
+                startActivityForResult(saveContactIntent, REQUEST_CODE_CREATECONTACT);
             }
         });
 
@@ -135,7 +152,9 @@ public class MainActivity extends AppCompatActivity {
                     data.getStringExtra(ContactEntry.COLUMN_PHONENUMBER),
                     data.getStringExtra(ContactEntry.COLUMN_ZIPCODE));
             contact.setId(data.getLongExtra(ContactEntry._ID, -1));
-            mContactList.add(contact);
+
+            mContactList = ContactsDBHelper.getInstance(getApplicationContext()).getAllContacts();
+            mAdapter.setContactList(mContactList);
             mAdapter.notifyDataSetChanged();
         }
     }
@@ -186,8 +205,12 @@ public class MainActivity extends AppCompatActivity {
             toolbar.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
             findViewById(R.id.toolbar_title).setVisibility(View.VISIBLE);
             exitToContactsButton.setVisibility(View.INVISIBLE);
+            for(Contact contact : mAdapter.getContactList()){
+                contact.setSelected(false);
+            }
         }
         deleteButton.setVisible(mIsCheckboxVisible);
+        addDummyContact.setVisible(!mIsCheckboxVisible);
     }
 
     private void addDummyContacts() {

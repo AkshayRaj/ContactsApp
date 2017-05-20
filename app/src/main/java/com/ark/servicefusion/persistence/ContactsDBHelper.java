@@ -115,10 +115,10 @@ public class ContactsDBHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    public List<Contact> getAllContacts(){
+    public ArrayList<Contact> getAllContacts(){
         SQLiteDatabase db = getReadableDatabase();
-        String groupBy = ContactEntry.COLUMN_FIRSTNAME + " ," + ContactEntry.COLUMN_LASTNAME;
-        String orderBy = ContactEntry.COLUMN_LASTNAME + " DESC";
+        String groupBy = ContactEntry.COLUMN_LASTNAME + " ," + ContactEntry.COLUMN_FIRSTNAME;
+        String orderBy = ContactEntry.COLUMN_FIRSTNAME + " ASC";
         Cursor cursor = db.query(ContactEntry.TABLE_CONTACTS, PROJECTION,
                 null, null, groupBy, null, orderBy);
 
@@ -147,17 +147,25 @@ public class ContactsDBHelper extends SQLiteOpenHelper {
                                  String phoneNumber, String zipCode){
         SQLiteDatabase db = getWritableDatabase();
         ContentValues contentValues = new ContentValues();
+        contentValues.put(ContactEntry._ID, rowId);
         contentValues.put(ContactEntry.COLUMN_FIRSTNAME, firstName);
         contentValues.put(ContactEntry.COLUMN_LASTNAME, lastName);
         contentValues.put(ContactEntry.COLUMN_DATEOFBIRTH, dateOfBirth);
         contentValues.put(ContactEntry.COLUMN_PHONENUMBER, phoneNumber);
         contentValues.put(ContactEntry.COLUMN_ZIPCODE, zipCode);
-        return db.update(ContactEntry.TABLE_CONTACTS, contentValues, ContactEntry._ID +"="+ rowId, null) > 0;
+        String selection = ContactEntry._ID +"=?";
+        String[] selectionArgs = {String.valueOf(rowId)};
+        return db.update(ContactEntry.TABLE_CONTACTS, contentValues, selection,selectionArgs) > 0;
     }
 
     public long insertContact(Contact contact) {
         return insertContact(contact.getFirstName(), contact.getLastName(), contact.getDateOfBirth(),
                 contact.getPhoneNumber(), contact.getZipCode());
+    }
+
+    public boolean updateContact(Contact contact) {
+        return updateContact(contact.getId(), contact.getFirstName(), contact.getLastName(),
+                contact.getDateOfBirth(), contact.getPhoneNumber(), contact.getZipCode());
     }
 }
 

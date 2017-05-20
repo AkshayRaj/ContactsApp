@@ -1,8 +1,11 @@
 package com.ark.servicefusion.ui.recyclerview.adapter;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
@@ -11,14 +14,20 @@ import android.widget.TextView;
 
 import com.ark.servicefusion.R;
 import com.ark.servicefusion.model.Contact;
+import com.ark.servicefusion.persistence.DatabaseContract;
+import com.ark.servicefusion.ui.ContactDetailsActivity;
+import com.ark.servicefusion.ui.MainActivity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.ContactViewHolder> {
     private static final String TAG = "ContactsAdapter";
-    private int VISIBILITY = View.INVISIBLE;
-    private List<Contact> contactList;
+
+    private Activity mActivity;
+    private int CHECKBOX_VISIBILITY = View.INVISIBLE;
+    private ArrayList<Contact> contactList;
 
     public class ContactViewHolder extends RecyclerView.ViewHolder {
         public TextView name;
@@ -32,8 +41,9 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
         }
     }
 
-    public ContactsAdapter(List<Contact> contactList) {
+    public ContactsAdapter(Activity activity, ArrayList<Contact> contactList) {
         this.contactList = contactList;
+        mActivity = activity;
     }
 
 
@@ -49,14 +59,13 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
     public void onBindViewHolder(final ContactViewHolder holder, final int position) {
         final Contact contact = contactList.get(position);
         holder.name.setText(contact.getFirstName() + " " + contact.getLastName());
-        holder.checkBox.setVisibility(VISIBILITY);
+
+        holder.checkBox.setVisibility(CHECKBOX_VISIBILITY);
         holder.checkBox.setChecked(contact.isSelected());
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                Log.d(TAG, contact.getFirstName() + " : " + contact.isSelected());
                 contact.setSelected(isChecked);
-                Log.d(TAG, contact.getFirstName() + " : " + contact.isSelected());
             }
         });
     }
@@ -66,7 +75,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
         return contactList.size();
     }
 
-    public void setContactList(List<Contact> contactList){
+    public void setContactList(ArrayList<Contact> contactList){
         this.contactList = contactList;
         notifyDataSetChanged();
     }
@@ -86,7 +95,7 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
     }
 
     public void setCheckboxVisibility(int visibiltiy){
-        VISIBILITY = visibiltiy;
+        CHECKBOX_VISIBILITY = visibiltiy;
         notifyDataSetChanged();
     }
 }
