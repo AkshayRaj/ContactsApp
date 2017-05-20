@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -25,8 +28,6 @@ import java.util.Locale;
 
 public class AddContactActivity extends AppCompatActivity {
 
-
-
     private EditText firstName;
     private EditText lastName;
     private EditText dateOfBirth;
@@ -34,11 +35,16 @@ public class AddContactActivity extends AppCompatActivity {
     private EditText zipCode;
     private Button saveButton;
     Calendar myCalendar;
+    private MenuItem saveContactMenuItem;
+    private MenuItem exitButton;
+    private Toolbar toolbar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_newcontact);
+        toolbar = (Toolbar) findViewById(R.id.toolbar_addcontact);
+        setSupportActionBar(toolbar);
 
         myCalendar = Calendar.getInstance();//init calendar with current time
 
@@ -66,32 +72,52 @@ public class AddContactActivity extends AppCompatActivity {
         });
         phoneNumber = (EditText) findViewById(R.id.edittext_phonenumber);
         zipCode = (EditText) findViewById(R.id.edittext_zipcode);
-
-        saveButton = (Button) findViewById(R.id.button_savecontact);
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Contact contact = new Contact(firstName.getText().toString(),
-                        lastName.getText().toString(),
-                        dateOfBirth.getText().toString(),
-                        phoneNumber.getText().toString(),
-                        zipCode.getText().toString());
-                long _id = ContactsDBHelper.getInstance(getApplicationContext())
-                        .createContact(contact);
-                contact.setId(_id);
-                Intent contactData = new Intent();
-                contactData.putExtra(ContactEntry._ID, contact.getId());
-                contactData.putExtra(ContactEntry.COLUMN_FIRSTNAME, contact.getFirstName());
-                contactData.putExtra(ContactEntry.COLUMN_LASTNAME, contact.getLastName());
-                contactData.putExtra(ContactEntry.COLUMN_DATEOFBIRTH, contact.getDateOfBirth());
-                contactData.putExtra(ContactEntry.COLUMN_PHONENUMBER, contact.getPhoneNumber());
-                contactData.putExtra(ContactEntry.COLUMN_ZIPCODE, contact.getZipCode());
-
-                setResult(RESULT_OK, contactData);
-                finish();
-            }
-        });
-
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_newcontact, menu);
+
+        saveContactMenuItem = menu.findItem(R.id.item_savecontact_addcontact);
+        saveContactMenuItem.setVisible(true);
+        exitButton = menu.findItem(R.id.item_exit_addcontact);
+        exitButton.setVisible(true);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.item_savecontact_addcontact:
+                saveContactAndExit();
+                return true;
+            case R.id.item_exit_addcontact:
+                setResult(RESULT_CANCELED);
+                finish();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void saveContactAndExit() {
+        Contact contact = new Contact(firstName.getText().toString(),
+                lastName.getText().toString(),
+                dateOfBirth.getText().toString(),
+                phoneNumber.getText().toString(),
+                zipCode.getText().toString());
+        long _id = ContactsDBHelper.getInstance(getApplicationContext())
+                .insertContact(contact);
+        contact.setId(_id);
+        Intent contactData = new Intent();
+        contactData.putExtra(ContactEntry._ID, contact.getId());
+        contactData.putExtra(ContactEntry.COLUMN_FIRSTNAME, contact.getFirstName());
+        contactData.putExtra(ContactEntry.COLUMN_LASTNAME, contact.getLastName());
+        contactData.putExtra(ContactEntry.COLUMN_DATEOFBIRTH, contact.getDateOfBirth());
+        contactData.putExtra(ContactEntry.COLUMN_PHONENUMBER, contact.getPhoneNumber());
+        contactData.putExtra(ContactEntry.COLUMN_ZIPCODE, contact.getZipCode());
+
+        setResult(MainActivity.RESULT_CODE_CONTACTCREATED, contactData);
+        finish();
+    }
 }
